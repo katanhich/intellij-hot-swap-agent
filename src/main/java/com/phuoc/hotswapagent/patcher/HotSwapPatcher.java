@@ -26,7 +26,7 @@ public class HotSwapPatcher extends JavaProgramPatcher {
 //        System.err.println(executor.getStartActionText());
 //        System.err.println(executor.isSupportedOnTarget());
 
-        if (!isRunCmd(executor.getId()) || isMaven(configuration.getName())) {
+        if (isMaven(configuration.getName())) {
             return;
         }
 
