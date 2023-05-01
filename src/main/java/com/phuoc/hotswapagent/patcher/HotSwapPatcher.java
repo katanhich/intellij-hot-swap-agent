@@ -18,17 +18,37 @@ public class HotSwapPatcher extends JavaProgramPatcher {
 
     @Override
     public void patchJavaParameters(Executor executor, RunProfile configuration, JavaParameters javaParameters) {
+//        System.err.println(executor.getActionName());
+//        System.err.println(configuration.getName());
+//        System.err.println(executor.getId());
+//        System.err.println(executor.getHelpId());
+//        System.err.println(executor.getContextActionId());
+//        System.err.println(executor.getStartActionText());
+//        System.err.println(executor.isSupportedOnTarget());
+
+        if (!isRunCmd(executor.getId()) || isMaven(configuration.getName())) {
+            return;
+        }
+
         createPropertyFile(javaParameters);
         addVMOptions(javaParameters);
     }
 
-    private static void addVMOptions(JavaParameters javaParameters) {
+    private boolean isRunCmd(String cmd) {
+        return cmd.equalsIgnoreCase("run");
+    }
+
+    private boolean isMaven(String cmd) {
+        return cmd.contains("[") && cmd.contains("]");
+    }
+
+    private void addVMOptions(JavaParameters javaParameters) {
         ParametersList list = javaParameters.getVMParametersList();
         list.add("-XX:+AllowEnhancedClassRedefinition");
         list.add("-XX:HotswapAgent=fatjar");
     }
 
-    private static void createPropertyFile(JavaParameters javaParameters) {
+    private void createPropertyFile(JavaParameters javaParameters) {
         try {
             String config = """
                 autoHotswap=true
