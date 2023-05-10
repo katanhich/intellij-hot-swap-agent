@@ -10,6 +10,7 @@ import org.apache.commons.io.FileUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * @author Phuoc Cao
@@ -18,15 +19,7 @@ public class HotSwapPatcher extends JavaProgramPatcher {
 
     @Override
     public void patchJavaParameters(Executor executor, RunProfile configuration, JavaParameters javaParameters) {
-//        System.err.println(executor.getActionName());
-//        System.err.println(configuration.getName());
-//        System.err.println(executor.getId());
-//        System.err.println(executor.getHelpId());
-//        System.err.println(executor.getContextActionId());
-//        System.err.println(executor.getStartActionText());
-//        System.err.println(executor.isSupportedOnTarget());
-
-        if (isMaven(configuration.getName())) {
+        if (isMaven(configuration.getName()) || isUnitTest(javaParameters)) {
             return;
         }
 
@@ -34,12 +27,22 @@ public class HotSwapPatcher extends JavaProgramPatcher {
         addVMOptions(javaParameters);
     }
 
-    private boolean isRunCmd(String cmd) {
-        return cmd.equalsIgnoreCase("run");
-    }
-
     private boolean isMaven(String cmd) {
         return cmd.contains("[") && cmd.contains("]");
+    }
+
+    private boolean isUnitTest(JavaParameters javaParameters) {
+        List<String> list = javaParameters.getVMParametersList().getParameters();
+        if (list.size() > 1 && list.get(0).equals("-ea")) {
+            return true;
+        }
+
+        list = javaParameters.getProgramParametersList().getParameters();
+        if (list.size() > 2 && list.get(1).contains("junit")) {
+            return true;
+        }
+
+        return javaParameters.getMainClass().contains("JUnitStarter");
     }
 
     private void addVMOptions(JavaParameters javaParameters) {
@@ -59,9 +62,7 @@ public class HotSwapPatcher extends JavaProgramPatcher {
             Path path = Path.of(classpath, "hotswap-agent.properties");
 
             FileUtils.writeStringToFile(path.toFile(), config, StandardCharsets.UTF_8);
-
         } catch (IOException e) {
-            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
