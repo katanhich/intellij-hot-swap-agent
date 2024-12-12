@@ -1,3 +1,6 @@
+import com.jetbrains.plugin.structure.intellij.problems.SinceBuildNotSpecified
+import org.jetbrains.intellij.tasks.PatchPluginXmlTask
+
 plugins {
     id("java")
     id("org.jetbrains.intellij") version "1.13.3"
@@ -33,5 +36,10 @@ tasks {
 
     publishPlugin {
         token.set(System.getenv("PUBLISH_TOKEN"))
+    }
+
+    patchPluginXml {
+        sinceBuild.set("242")
+        untilBuild.set(provider { null })
     }
 }

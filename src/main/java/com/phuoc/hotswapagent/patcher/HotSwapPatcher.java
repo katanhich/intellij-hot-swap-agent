@@ -19,7 +19,9 @@ public class HotSwapPatcher extends JavaProgramPatcher {
 
     @Override
     public void patchJavaParameters(Executor executor, RunProfile configuration, JavaParameters javaParameters) {
-        if (isMaven(configuration.getName()) || isUnitTest(javaParameters)) {
+        javaParameters.getClassPath().add("C:\\Users\\pcao\\.jdks\\jbrsdk_jcef-17.0.12\\lib\\hotswap");
+
+        if (!isEligibleForHotSwap(configuration, javaParameters)) {
             return;
         }
 
@@ -27,22 +29,35 @@ public class HotSwapPatcher extends JavaProgramPatcher {
         addVMOptions(javaParameters);
     }
 
+    private boolean isEligibleForHotSwap(RunProfile configuration, JavaParameters javaParameters) {
+        String name = configuration.getName();
+        if (name.toLowerCase().contains("tomcat")) {
+            return true;
+        }
+
+        return !isMaven(name) && !isUnitTest(javaParameters);
+    }
+
     private boolean isMaven(String cmd) {
         return cmd.contains("[") && cmd.contains("]");
     }
 
     private boolean isUnitTest(JavaParameters javaParameters) {
-        List<String> list = javaParameters.getVMParametersList().getParameters();
-        if (list.size() > 1 && list.get(0).equals("-ea")) {
-            return true;
-        }
+        try {
+            List<String> list = javaParameters.getVMParametersList().getParameters();
+            if (list.size() > 1 && list.get(0).equals("-ea")) {
+                return true;
+            }
 
-        list = javaParameters.getProgramParametersList().getParameters();
-        if (list.size() > 2 && list.get(1).contains("junit")) {
-            return true;
-        }
+            list = javaParameters.getProgramParametersList().getParameters();
+            if (list.size() > 2 && list.get(1).contains("junit")) {
+                return true;
+            }
 
-        return javaParameters.getMainClass().contains("JUnitStarter");
+            return javaParameters.getMainClass().contains("JUnitStarter");
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void addVMOptions(JavaParameters javaParameters) {
