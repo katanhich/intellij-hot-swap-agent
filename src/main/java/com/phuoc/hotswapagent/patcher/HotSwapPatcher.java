@@ -19,7 +19,7 @@ public class HotSwapPatcher extends JavaProgramPatcher {
 
     @Override
     public void patchJavaParameters(Executor executor, RunProfile configuration, JavaParameters javaParameters) {
-        javaParameters.getClassPath().add("C:\\Users\\pcao\\.jdks\\jbrsdk_jcef-17.0.12\\lib\\hotswap");
+//        javaParameters.getClassPath().add("C:\\Users\\pcao\\.jdks\\jbrsdk_jcef-17.0.12\\lib\\hotswap");
 
         if (!isEligibleForHotSwap(configuration, javaParameters)) {
             return;
@@ -32,7 +32,7 @@ public class HotSwapPatcher extends JavaProgramPatcher {
     private boolean isEligibleForHotSwap(RunProfile configuration, JavaParameters javaParameters) {
         String name = configuration.getName();
         if (name.toLowerCase().contains("tomcat")) {
-            return true;
+            return false;
         }
 
         return !isMaven(name) && !isUnitTest(javaParameters);
